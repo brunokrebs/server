@@ -32,24 +32,24 @@ class UserController extends Controller
 
         return response()
             ->json([
-                'done' => Auth::check()
+                'done' => $user->api_token
             ]);
         
     }
 
     //Not working yet
-    public function logout(Request $request)
-    {
-        //$user = $request->user();
-        $user = Auth::user();
-        $user->api_token = null;
-        $user->save();
+    // public function logout(Request $request)
+    // {
+    //     //$user = $request->user();
+    //     $user = Auth::user();
+    //     $user->api_token = null;
+    //     $user->save();
         
-        Auth::logout($user);
+    //     Auth::logout($user);
 
-        return response()
-            ->json([
-                'done' => true
-            ]);
-    }
+    //     return response()
+    //         ->json([
+    //             'done' => true
+    //         ]);
+    // }
 }

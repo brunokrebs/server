@@ -19,6 +19,10 @@ use Illuminate\Http\Request;
 
 Route::resource('photos', 'PhotoController');
 Route::post('adduser', 'UserController@adduser');
+Route::post('bookmark', 'PhotoController@bookmark');
+Route::get('bookmark', 'PhotoController@bookmarked_photos');
+
+
 
 Route::post('logout', 'UserController@logout');
 

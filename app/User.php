@@ -30,4 +30,9 @@ class User extends Authenticatable
     {
         return $this->hasMany('App\Photo');
     }
+
+    public function images()
+    {
+        return $this->belongsToMany(Photo::class);
+    }
 }

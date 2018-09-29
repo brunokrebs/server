@@ -10,12 +10,15 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 use App\User;
 
 Route::get('/', function () {
     // $user = User::find(1);
     // Auth::logout($user);
     return view('welcome');
-});
+})->name('home');
+
+
 
 

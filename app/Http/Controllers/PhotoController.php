@@ -11,11 +11,11 @@ use Auth;
 class PhotoController extends Controller
 {
    
-    // public function __construct()
-    // {
-    // 	$this->middleware('auth:api')
-    // 		->except(['index', 'show']);
-    // }
+    public function __construct()
+    {
+    	$this->middleware('auth:api')
+    		->except(['index', 'show']);
+    }
 
     public function index()
     {
@@ -23,8 +23,7 @@ class PhotoController extends Controller
     		->get(['id', 'name', 'image']);
     	return response()
     		->json([
-                'photos' => $photos,
-                'islogged' => Auth::check()
+                'photos' => $photos
     		]);
     }
 
@@ -44,6 +43,16 @@ class PhotoController extends Controller
 
         //Get signed in user's id
         $user = User::where('api_token', $hauth)->first();
+
+        //if user is not authenticated
+        if (!$user)
+        {
+            return response()
+    	        ->json([
+    	        'status' => 401,
+                'message' => 'Unauthorized'
+    	    ]);
+        }
 
         $this->validate($request, [
     		'name' => 'required|max:255',
@@ -77,19 +86,112 @@ class PhotoController extends Controller
     	    ]);
     }
 
+    public function bookmark(Request $request)
+    {
+        $hauth = str_replace("Bearer ", "", $request->header('Authorization'));
+        
+        //TODO: Check if token is not expired
+
+        //Get signed in user's id
+        $user = User::where('api_token', $hauth)->first();
+        $photo_id = $request->id;
+
+        //Get photo
+        $photo = Photo::find($photo_id);
+
+        //$user->photos()->attach($photo);
+
+        $exists = $photo->users->contains($user->id);
+
+        if(!$exists) 
+        {
+            $photo->users()->attach($user);
+
+            return response()
+    	        ->json([
+                'bookmarked' => 'Bookmarked',
+                'message' => 'You have bookmarked this image'
+    	    
+    	    ]);
+        }
+
+        $photo->users()->detach($user);
+        return response()
+    	        ->json([
+                'bookmarked' => 'Bookmark This Image',
+                'message' => 'You have removed the bookmark from this image'
+    	    
+    	    ]);
+
+    }
+
+    public function bookmarked_photos(Request $request)
+    {
+        $hauth = str_replace("Bearer ", "", $request->header('Authorization'));      
+
+        //Get signed in user's id
+        $user = User::where('api_token', $hauth)->first();
+
+        return response()
+    	        ->json([
+                'photos' => $user->images()->get()
+            
+    	    ]);
+
+    }
+    
+
     private function getFileName($file)
     {
     	return str_random(32).'.'.$file->extension();
     }
 
-    public function show($id)
+    public function show($id, Request $request)
     {
-        $photo = Photo::with(['user'])
-            ->findOrFail($id);
+
+        $hauth = str_replace("Bearer ", "", $request->header('Authorization'));      
+            
+        $user = User::where('api_token', $hauth)->first();
+
+        if ($user)
+        {
+
+            $photo = Photo::with(['user'])
+                ->findOrFail($id);
+
+            $exists = $photo->users->contains($user->id);
+
+        
+            if($exists == false) 
+            {
+                return response()
+                    ->json([
+                    'photo' => $photo,
+                    'bookmarked' => 'Bookmark This Image',
+                            
+                ]);
+            }
+        
+        
+            return response()
+                ->json([
+                    'photo' => $photo,
+                    'bookmarked' => 'Bookmarked'
+                ]);
+        
+        }
+
+        $photo = Photo::findOrFail($id);
+
         return response()
             ->json([
-                'photo' => $photo
-            ]);
+            'photo' => $photo,
+            
+                    
+        ]);
+
+        
+        
     }
 
     public function edit($id, Request $request)
@@ -137,6 +239,7 @@ class PhotoController extends Controller
                 'message' => 'You have successfully updated a photo!'
             ]);
     }
+
     
     public function destroy($id)
     {        
@@ -146,6 +249,7 @@ class PhotoController extends Controller
         
         // remove image
         File::delete(base_path('/public/images/'.$photo->image));
+        $photo->users()->detach();
         $photo->delete();
         return response()
             ->json([
