@@ -78,8 +78,7 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel <br>
-                    {{ dd(Auth::check()) }}
+                    Laravel
                 </div>
 
                 <div class="links">
