@@ -21,7 +21,7 @@ class PhotosTableSeeder extends Seeder
                 'user_id' => 1,
         		'name' => $faker->sentence,
         		'description' => $faker->paragraph(mt_rand(10, 20)),
-        		'image' => 'test.png'
+        		'image' => 'test.jpg'
         	]);
         	
         }
